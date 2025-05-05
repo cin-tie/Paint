@@ -25,7 +25,7 @@ void RectangleShape::draw(QPainter* painter){
     }
 
     if (m_selected) {
-        QRect selectionRect = axisAlignedBoundingRect().adjusted(-3, -3, 3, 3);
+        QRect selectionRect = axisAlignedBoundingRect().adjusted(-m_penWidth, -m_penWidth, m_penWidth, m_penWidth);
         
         painter->setPen(QPen(Qt::blue, 2, Qt::DashLine));
         painter->setBrush(Qt::NoBrush);
@@ -129,6 +129,14 @@ void RectangleShape::fromJson(const QJsonObject& json){
         m_rect.setWidth(json["width"].toInt());
     if(json.contains("height"))
         m_rect.setWidth(json["height"].toInt());
+}
+
+QString RectangleShape::name() const{ 
+    return "Rectangle"; 
+}
+
+QPoint RectangleShape::position() const{
+    return m_rect.topLeft(); 
 }
 
 QRect RectangleShape::rect() const{

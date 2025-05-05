@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QColor>
 #include <QJsonObject>
+#include <QJsonArray>
 
 class Shape : public QObject
 {

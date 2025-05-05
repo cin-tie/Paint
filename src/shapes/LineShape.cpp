@@ -22,7 +22,7 @@ void LineShape::draw(QPainter* painter){
     if (m_selected) {
         painter->setPen(QPen(Qt::blue, 2, Qt::DashLine));
         painter->setBrush(Qt::NoBrush);
-        painter->drawRect(boundingRect().adjusted(-5, -5, 5, 5));
+        painter->drawRect(boundingRect().adjusted(-m_penWidth, -m_penWidth, m_penWidth, m_penWidth));
         
         painter->setPen(QPen(Qt::red, 2));
         painter->setBrush(Qt::white);
@@ -34,9 +34,11 @@ void LineShape::draw(QPainter* painter){
 }
 
 void LineShape::update(const QPoint& toPoint){
-    m_endPoint = toPoint;
-    m_rotationAngle = qAtan2(m_endPoint.y() - m_startPoint.y(), m_endPoint.x() - m_startPoint.x());
-    emit shapeChanged();
+    if(m_endPoint != toPoint){
+        m_endPoint = toPoint;
+        m_rotationAngle = qAtan2(m_endPoint.y() - m_startPoint.y(), m_endPoint.x() - m_startPoint.x());
+        emit shapeChanged();
+    }
 }
 
 bool LineShape::contains(const QPoint& point) const{
