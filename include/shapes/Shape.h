@@ -8,6 +8,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <QDebug>
+
 class Shape : public QObject
 {
     Q_OBJECT

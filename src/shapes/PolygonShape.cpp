@@ -134,6 +134,10 @@ void PolygonShape::fromJson(const QJsonObject &json) {
     updateBoundingRect();
 }
 
+QString PolygonShape::name() const{
+    return "Polygon";
+}
+
 QPoint PolygonShape::position() const {
     return m_boundingRect.topLeft();
 }

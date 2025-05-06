@@ -7,6 +7,7 @@ RectangleShape::RectangleShape(const QPoint& topLeft, const QPoint& bottomRight,
     Shape(parent), m_rect(QRect(topLeft, bottomRight).normalized()) {}
 
 void RectangleShape::draw(QPainter* painter){
+    qDebug() << "Paint rect";   
     painter->save();
 
     QPen pen(m_penColor, m_penWidth, m_penStyle);

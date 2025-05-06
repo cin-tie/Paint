@@ -73,7 +73,7 @@ QRect FreehandShape::axisAlignedBoundingRect() const{
 }
 
 void FreehandShape::update(const QPoint& toPoint){
-    m_points.push_back(toPoint);
+    m_points.append(toPoint);
     updateBoundingRect();
     emit shapeChanged();
 }
@@ -135,7 +135,7 @@ QJsonObject FreehandShape::toJson() const{
         QJsonObject pointObject;
         pointObject["x"] = p.x();
         pointObject["y"] = p.y();
-        pointsArray.push_back(pointObject);
+        pointsArray.append(pointObject);
     }
 
     json["points"] = pointsArray;
@@ -150,7 +150,7 @@ void FreehandShape::fromJson(const QJsonObject& json){
         for(const QJsonValue& val : pointArray){
             QJsonObject pointObject = val.toObject();
             if(pointObject.contains("x") && pointObject.contains("y")){
-                m_points.push_back(QPoint(pointObject["x"].toInt(), pointObject["y"].toInt()));
+                m_points.append(QPoint(pointObject["x"].toInt(), pointObject["y"].toInt()));
             }
         }
         updateBoundingRect();
@@ -166,7 +166,7 @@ QPoint FreehandShape::position() const{
 }
 
 void FreehandShape::addPoint(const QPoint& point){
-    m_points.push_back(point);
+    m_points.append(point);
     updateBoundingRect();
     emit shapeChanged();
 }
@@ -192,7 +192,7 @@ void FreehandShape::simplify(double tolerance){
         return;
 
     QVector<QPoint> simplified;
-    simplified.push_back(m_points[0]);
+    simplified.append(m_points[0]);
 
     for(size_t i = 1; i < m_points.size() - 1; ++i){
         QPoint prev = m_points[i - 1];
@@ -209,11 +209,11 @@ void FreehandShape::simplify(double tolerance){
         double distance = (2 * S) / a;
 
         if(distance > tolerance){
-            simplified.push_back(current);
+            simplified.append(current);
         }
     }
 
-    simplified.push_back(m_points[m_points.size() - 1]);
+    simplified.append(m_points[m_points.size() - 1]);
     m_points = simplified;
     updateBoundingRect();
     emit shapeChanged();

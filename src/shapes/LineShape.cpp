@@ -105,6 +105,14 @@ void LineShape::fromJson(const QJsonObject& json){
         m_endPoint.setY(json["endY"].toInt());
 }
 
+QString LineShape::name() const{
+    return "Line";
+}
+
+QPoint LineShape::position() const{
+    return m_startPoint;
+}
+
 QPoint LineShape::startPoint() const{
     return m_startPoint;
 }
@@ -170,8 +178,7 @@ double LineShape::distanceToLine(const QPoint &point) const{
                 qPow(point.y() - projPoint.y(), 2));
 }
 
-QPointF LineShape::rotatePoint(const QPointF& point, const QPointF& center, double angle) const
-{
+QPointF LineShape::rotatePoint(const QPointF& point, const QPointF& center, double angle) const{
     double s = qSin(angle);
     double c = qCos(angle);
     
