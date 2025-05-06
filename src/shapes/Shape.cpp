@@ -75,6 +75,9 @@ QColor Shape::fillColor() const{
 Qt::PenStyle Shape::penStyle() const{
     return m_penStyle;
 }
+double Shape::rotationAngle() const{
+    return m_rotationAngle;
+}
 
 QJsonObject Shape::toJson() const
 {

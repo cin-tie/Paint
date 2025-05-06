@@ -1,10 +1,10 @@
 #include "../include/MainWindow.h"
-#include "../include/BrushWidthSpinBox.h"
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QToolBar>
+#include <QSpinBox>
 #include <QMenu>
 #include <QMenuBar>
 #include <QActionGroup>
@@ -105,7 +105,7 @@ void MainWindow::selectTool(QAction* action){
 void MainWindow::selectColor(){
     QColor color = QColorDialog::getColor(m_canvas->penColor(), this, "Choose color");
     if(color.isValid()){
-        m_canvas->setFillColor(color);
+        m_canvas->setPenColor(color);
     }
 }
 
@@ -205,6 +205,17 @@ void MainWindow::createActions(){
     
     m_aboutAct = new QAction("About", this);
     connect(m_aboutAct, &QAction::triggered, this, &MainWindow::about);
+
+    m_lineAct->setToolTip("Draw straight lines");
+    m_freehandAct->setToolTip("Draw freehand lines");
+    m_rectAct->setToolTip("Draw rectangles");
+    m_circleAct->setToolTip("Draw ellipses");
+    m_polygonAct->setToolTip("Draw polygons");
+    m_regularPolygonAct->setToolTip("Draw regular polygons");
+    m_colorAct->setToolTip("Set line color");
+    m_fillColorAct->setToolTip("Set fill color");
+
+
 }
 
 void MainWindow::createMenus(){
@@ -229,7 +240,8 @@ void MainWindow::createMenus(){
     m_helpMenu->addAction(m_aboutAct);
 }
 
-void MainWindow::createToolBars(){
+void MainWindow::createToolBars()
+{
     m_drawingToolBar = addToolBar("Tools");
     m_drawingToolBar->addAction(m_lineAct);
     m_drawingToolBar->addAction(m_freehandAct);
@@ -241,10 +253,15 @@ void MainWindow::createToolBars(){
     m_drawingToolBar->addAction(m_colorAct);
     m_drawingToolBar->addAction(m_fillColorAct);
     
-    BrushWidthSpinBox *widthSpinBox = new BrushWidthSpinBox();
+    QSpinBox *widthSpinBox = new QSpinBox();
+    widthSpinBox->setRange(1, 20);
     widthSpinBox->setValue(m_canvas->penWidth());
-    connect(widthSpinBox, QOverload<int>::of(&BrushWidthSpinBox::valueChanged),
+    widthSpinBox->setSuffix(" px");
+    widthSpinBox->setToolTip("Line width");
+    
+    connect(widthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &MainWindow::setPenWidth);
+    
     m_drawingToolBar->addWidget(widthSpinBox);
     
     m_editToolBar = addToolBar("Editing");

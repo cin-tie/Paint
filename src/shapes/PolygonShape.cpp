@@ -14,7 +14,6 @@ void PolygonShape::draw(QPainter* painter){
     painter->save();
 
     QPen pen(m_penColor, m_penWidth, m_penStyle);
-    pen.setJoinStyle(Qt::MiterJoin);
     painter->setPen(pen);
     painter->setBrush(m_fillColor);
 

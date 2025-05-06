@@ -14,6 +14,7 @@ void RectangleShape::draw(QPainter* painter){
     pen.setCapStyle(Qt::RoundCap);
     pen.setJoinStyle(Qt::RoundJoin);
     painter->setPen(pen);
+    painter->setBrush(m_fillColor);
 
     if (qFuzzyIsNull(m_rotationAngle)) {
         painter->drawRect(m_rect);

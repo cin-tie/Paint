@@ -39,6 +39,7 @@ class CanvasWidget : public QWidget{
         void mousePressEvent(QMouseEvent* event) override;
         void mouseMoveEvent(QMouseEvent* event) override;
         void mouseReleaseEvent(QMouseEvent* event) override;
+        void mouseDoubleClickEvent(QMouseEvent* event) override;
         void resizeEvent(QResizeEvent* event) override;
         void contextMenuEvent(QContextMenuEvent* event) override;
 
@@ -52,6 +53,11 @@ class CanvasWidget : public QWidget{
         QColor m_penColor = Qt::black;
         int m_penWidth = 1;
         QColor m_fillColor = Qt::transparent;
+
+        Shape* m_selectedShape = nullptr;
+        QPoint m_lastMousePos;
+        bool m_dragging = false;
+        bool m_resizing = false;
 
         Shape* createShape(const QString& shapeType);
         void selectShape(const QPoint& point);

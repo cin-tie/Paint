@@ -82,8 +82,8 @@ void CanvasWidget::paintEvent(QPaintEvent* event){
 }
 
 
-void CanvasWidget::mousePressEvent(QMouseEvent *event){
-
+void CanvasWidget::mousePressEvent(QMouseEvent *event)
+{
     qDebug() << "Mouse press" << m_currentShapeType;
 
     if(event->button() == Qt::LeftButton){
@@ -96,27 +96,20 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event){
             }
             m_isDrawing = true;
         }
-        else{
-            if(m_currentShapeType == "Polygon"){
-                if(!m_currentShape){
-                    m_currentShape = createShape(m_currentShapeType);
-                    if (PolygonShape* polygon = qobject_cast<PolygonShape*>(m_currentShape)) {
-                        polygon->addPoint(m_lastPoint);
-                    }
-                    m_isDrawing = true;
-                } 
-                else{
-                    if (PolygonShape* polygon = qobject_cast<PolygonShape*>(m_currentShape)) {
-                        polygon->addPoint(m_lastPoint);
-                    }
-                    update();
-                }
-            }
-            else {
+        else if(m_currentShapeType == "Polygon"){
+            if(!m_currentShape){
                 m_currentShape = createShape(m_currentShapeType);
-                qDebug() << "Shape created" << (m_currentShape == nullptr);
                 m_isDrawing = true;
             }
+            if (PolygonShape* polygon = qobject_cast<PolygonShape*>(m_currentShape)) {
+                polygon->addPoint(m_lastPoint);
+            }
+            update();
+        }
+        else {
+            m_currentShape = createShape(m_currentShapeType);
+            qDebug() << "Shape created" << (m_currentShape == nullptr);
+            m_isDrawing = true;
         }
         
         m_isModified = true;
@@ -129,15 +122,15 @@ void CanvasWidget::mousePressEvent(QMouseEvent *event){
 
 void CanvasWidget::mouseMoveEvent(QMouseEvent *event){
 
-    //qDebug() << "Mouse move";
-
     if ((event->buttons() & Qt::LeftButton) && m_isDrawing && m_currentShape) {
         if (m_currentShapeType == "Freehand") {
             if (FreehandShape* freehand = qobject_cast<FreehandShape*>(m_currentShape)) {
                 freehand->addPoint(event->pos());
             }
         } else {
-            m_currentShape->update(event->pos());
+            if(m_currentShapeType != "Polygon"){
+                m_currentShape->update(event->pos());
+            }
         }
         update();
     }
@@ -145,20 +138,36 @@ void CanvasWidget::mouseMoveEvent(QMouseEvent *event){
 
 void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-
     qDebug() << "Mouse release";
 
-    qDebug() << m_isDrawing << (m_currentShape == nullptr);
-
     if (event->button() == Qt::LeftButton && m_isDrawing && m_currentShape) {
-        if (m_currentShapeType != "Freehand" && m_currentShapeType != "Polygon") {
+        if (m_currentShapeType == "Freehand") {
             m_shapes.append(m_currentShape);
-            qDebug() << "Shape appended";
-            qDebug() << m_shapes.size();
+            m_currentShape = nullptr;
+        }
+        else if (m_currentShapeType != "Polygon") {
+            m_shapes.append(m_currentShape);
             m_currentShape = nullptr;
         }
         m_isDrawing = false;
         update();
+    }
+}
+
+void CanvasWidget::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton && 
+        m_currentShapeType == "Polygon" && 
+        m_currentShape)
+    {
+        PolygonShape* polygon = qobject_cast<PolygonShape*>(m_currentShape);
+        if (polygon) {
+            polygon->closePolygon();
+            m_shapes.append(m_currentShape);
+            m_currentShape = nullptr;
+            m_isDrawing = false;
+            update();
+        }
     }
 }
 

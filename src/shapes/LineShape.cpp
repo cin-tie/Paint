@@ -16,6 +16,7 @@ void LineShape::draw(QPainter* painter){
     pen.setCapStyle(Qt::RoundCap);
     pen.setJoinStyle(Qt::RoundJoin);
     painter->setPen(pen);
+    painter->setBrush(m_fillColor); 
 
     painter->drawLine(m_startPoint, m_endPoint);
 

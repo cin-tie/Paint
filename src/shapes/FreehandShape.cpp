@@ -18,7 +18,7 @@ void FreehandShape::draw(QPainter *painter)
     pen.setCapStyle(Qt::RoundCap);
     pen.setJoinStyle(Qt::RoundJoin);
     painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
+    painter->setBrush(m_fillColor);
 
     painter->drawPolyline(m_points.data(), m_points.size());
 

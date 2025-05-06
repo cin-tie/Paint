@@ -13,6 +13,7 @@ void EllipseShape::draw(QPainter* painter){
     pen.setCapStyle(Qt::RoundCap);
     pen.setJoinStyle(Qt::RoundJoin);
     painter->setPen(pen);
+    painter->setBrush(m_fillColor);
 
     if (qFuzzyIsNull(m_rotationAngle)) {
         painter->drawEllipse(m_rect);
