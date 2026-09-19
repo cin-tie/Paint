@@ -39,24 +39,24 @@ void CanvasWidget::setCurrentShapeType(const QString& shapeType){
 
 void CanvasWidget::setPenColor(const QColor& color){
     m_penColor = color;
-    if(m_currentShape){
-        m_currentShape->setPenColor(color);
+    if(m_selectedShape){
+        m_selectedShape->setPenColor(color);
         update();
     }
 }
 
 void CanvasWidget::setPenWidth(int width){
     m_penWidth = width;
-    if(m_currentShape){
-        m_currentShape->setPenWidth(width);
+    if(m_selectedShape){
+        m_selectedShape->setPenWidth(width);
         update();
     }
 }
 
 void CanvasWidget::setFillColor(const QColor& color){
     m_fillColor = color;
-    if(m_currentShape){
-        m_currentShape->setFillColor(color);
+    if(m_selectedShape){
+        m_selectedShape->setFillColor(color);
         update();
     }
 }
@@ -64,15 +64,12 @@ void CanvasWidget::setFillColor(const QColor& color){
 void CanvasWidget::paintEvent(QPaintEvent* event){
     Q_UNUSED(event);
 
-    qDebug() << "Paint event";
 
     QPainter painter(this);
     painter.fillRect(rect(), Qt::white);
 
 
-    qDebug() << m_shapes.size();
     for(Shape* shape : m_shapes){
-        qDebug() << "Paint event shape";
         shape->draw(&painter);
     }
 
@@ -84,74 +81,136 @@ void CanvasWidget::paintEvent(QPaintEvent* event){
 
 void CanvasWidget::mousePressEvent(QMouseEvent *event)
 {
-    qDebug() << "Mouse press" << m_currentShapeType;
 
     if(event->button() == Qt::LeftButton){
         m_lastPoint = event->pos();
-        
-        if(m_currentShapeType == "Freehand"){
-            m_currentShape = createShape(m_currentShapeType);
-            if(FreehandShape* freehand = qobject_cast<FreehandShape*>(m_currentShape)){
-                freehand->addPoint(m_lastPoint);
+        if(!m_selectedShape){
+            m_dragging = false;
+            if(m_currentShapeType == "Freehand"){
+                m_currentShape = createShape(m_currentShapeType);
+                if(FreehandShape* freehand = qobject_cast<FreehandShape*>(m_currentShape)){
+                    freehand->addPoint(m_lastPoint);
+                }
+                m_isDrawing = true;
             }
-            m_isDrawing = true;
-        }
-        else if(m_currentShapeType == "Polygon"){
-            if(!m_currentShape){
+            else if(m_currentShapeType == "Polygon"){
+                if(!m_currentShape){
+                    m_currentShape = createShape(m_currentShapeType);
+                    m_isDrawing = true;
+                }
+                if (PolygonShape* polygon = qobject_cast<PolygonShape*>(m_currentShape)) {
+                    polygon->addPoint(m_lastPoint);
+                }
+                update();
+            }
+            else {
                 m_currentShape = createShape(m_currentShapeType);
                 m_isDrawing = true;
             }
-            if (PolygonShape* polygon = qobject_cast<PolygonShape*>(m_currentShape)) {
-                polygon->addPoint(m_lastPoint);
-            }
-            update();
         }
-        else {
-            m_currentShape = createShape(m_currentShapeType);
-            qDebug() << "Shape created" << (m_currentShape == nullptr);
-            m_isDrawing = true;
+        else{
         }
-        
         m_isModified = true;
         emit fileModified(true);
     }
     else if (event->button() == Qt::RightButton) {
         selectShape(event->pos());
+
+        qDebug() << "MOUSE PRESS SELECTED";
+        if(m_selectedShape != nullptr){
+            QRect rect = m_selectedShape->boundingRect();
+                if(rect.contains(m_lastPoint)){
+                    if(!m_dragging && !m_rotating && !m_resizing)
+                        m_dragging = true;
+                    else{
+                        if(m_dragging){
+                            m_dragging = false;
+                            m_resizing = true;
+                        }
+                        else if(m_resizing){
+                            m_resizing = false;
+                            m_rotating = true;
+                        }
+                        else{
+                            m_rotating = false;
+                            m_dragging = true;
+                        }
+                    }
+                }
+                else 
+                    m_selectedShape = nullptr;
+                return;
+        }
     }
+    
 }
 
 void CanvasWidget::mouseMoveEvent(QMouseEvent *event){
 
-    if ((event->buttons() & Qt::LeftButton) && m_isDrawing && m_currentShape) {
-        if (m_currentShapeType == "Freehand") {
-            if (FreehandShape* freehand = qobject_cast<FreehandShape*>(m_currentShape)) {
-                freehand->addPoint(event->pos());
+    QPoint m_currentPoint = event->pos();
+    m_scale = 1;
+
+    if ((event->buttons() & Qt::LeftButton)){
+        if(m_isDrawing && m_currentShape) {
+            if (m_currentShapeType == "Freehand") {
+                if (FreehandShape* freehand = qobject_cast<FreehandShape*>(m_currentShape)) {
+                    freehand->addPoint(event->pos());
+                }
+            } else {
+                if(m_currentShapeType != "Polygon"){
+                    m_currentShape->update(event->pos());
+                }
             }
-        } else {
-            if(m_currentShapeType != "Polygon"){
-                m_currentShape->update(event->pos());
+            update();
+        }
+        else{
+            if(m_selectedShape){ 
+                if (m_dragging){
+                    m_selectedShape->move((m_currentPoint - m_lastPoint));
+                    m_lastPoint = m_currentPoint;
+                }
+                if (m_resizing) {
+                    m_scale = m_currentPoint.x() - m_lastPoint.x();
+                }
+                if (m_rotating){
+                    QRect rect = m_selectedShape->boundingRect();
+                    QPointF center = rect.center();
+
+                    QPointF vec = m_currentPoint - center;
+                    qreal angle = (std::atan2(vec.y(), vec.x()) - std::atan2(center.y(), center.x())) * 180 / M_PI;
+
+                    m_selectedShape->rotate(angle);
+                }
+                update();
             }
         }
-        update();
     }
 }
-
+    
 void CanvasWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    qDebug() << "Mouse release";
 
-    if (event->button() == Qt::LeftButton && m_isDrawing && m_currentShape) {
-        if (m_currentShapeType == "Freehand") {
-            m_shapes.append(m_currentShape);
-            m_currentShape = nullptr;
+    if (event->button() == Qt::LeftButton) {
+        if(m_isDrawing && m_currentShape) {
+            if (m_currentShapeType == "Freehand") {
+                m_shapes.append(m_currentShape);
+                m_currentShape = nullptr;
+            }
+            else if (m_currentShapeType != "Polygon") {
+                m_shapes.append(m_currentShape);
+                m_currentShape = nullptr;
+            }
+            m_isDrawing = false;
+            update();
         }
-        else if (m_currentShapeType != "Polygon") {
-            m_shapes.append(m_currentShape);
-            m_currentShape = nullptr;
+        if(m_selectedShape){ 
+            if (m_resizing) {
+                m_selectedShape->scale(m_scale / 70);
+            }
+            update();
         }
-        m_isDrawing = false;
-        update();
     }
+
 }
 
 void CanvasWidget::mouseDoubleClickEvent(QMouseEvent *event)
@@ -206,7 +265,6 @@ void CanvasWidget::contextMenuEvent(QContextMenuEvent* event){
 Shape* CanvasWidget::createShape(const QString& shapeType){
     Shape* shape = nullptr;
 
-    qDebug() << "Shape creating" << shapeType << (shape == nullptr);
 
     if(shapeType == "Line"){
         shape = new LineShape(m_lastPoint, m_lastPoint, this);
@@ -237,7 +295,6 @@ Shape* CanvasWidget::createShape(const QString& shapeType){
         }
     }
     
-    qDebug() << "Shape created" << shapeType << (shape == nullptr);
     if(shape){
         shape->setPenColor(m_penColor);
         shape->setPenWidth(m_penWidth);
@@ -251,13 +308,17 @@ void CanvasWidget::selectShape(const QPoint& point){
     for(Shape* shape : m_shapes){
         shape->setSelected(false);
     }
+    m_selectedShape = nullptr;
+    /*m_resizing = false;
+    m_dragging = false;
+    m_rotating = false;*/
 
     m_currentShape = nullptr;
     for(int i = m_shapes.size() - 1; i >= 0; --i){
         if(m_shapes[i]->contains(point)){
             m_shapes[i]->setSelected(true);
-            m_currentShape = m_shapes[i];
-            emit shapeSelected(m_currentShape->name() + " selected");
+            m_selectedShape = m_shapes[i];
+            emit shapeSelected(m_selectedShape->name() + " selected");
             break;
         }
     }
@@ -266,53 +327,71 @@ void CanvasWidget::selectShape(const QPoint& point){
 }
 
 bool CanvasWidget::saveToFile(const QString& filename){
-    QJsonArray shapesArray;
-    for(Shape* shape : m_shapes){
-        shapesArray.append(shape->toJson());
-    }
-
-    QJsonDocument doc(shapesArray);
     QFile file(filename);
-    if(!file.open(QIODevice::WriteOnly)){
-        return false;
+    if (!file.open(QIODevice::WriteOnly)) return false;
+
+    qDebug() << "File created";
+    QJsonObject root;
+    root["version"] = 1;
+    root["penColor"] = m_penColor.name();
+    root["penWidth"] = m_penWidth;
+
+    QJsonArray shapeArray;
+    qDebug() << "Before shapes";
+    for (const auto& shape : m_shapes) {
+        qDebug() << "Shape " << shape->name();
+        QJsonObject obj = shape->toJson();
+        obj["type"] = shape->name();
+        shapeArray.append(obj);
+        qDebug() << "Shape created";
     }
 
+    root["shapes"] = shapeArray;
+
+    qDebug() << "Before doc";
+
+    QJsonDocument doc(root);
     file.write(doc.toJson());
     file.close();
-    m_isModified = false;
-    emit fileModified(false);
+
+    fileModified(false);
     return true;
 }
 
-bool CanvasWidget::loadFromFile(const QString& filename){
-    QFile file(filename);
-    if(!file.open(QIODevice::ReadOnly)){
-        return false;
-    }
+bool CanvasWidget::loadFromFile(const QString &fileName) {
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) return false;
 
     QByteArray data = file.readAll();
+    file.close();
+
     QJsonDocument doc = QJsonDocument::fromJson(data);
-    if(!doc.isArray()){
-        return false;
-    }
+    if (!doc.isObject()) return false;
 
-    clearCanvas();
+    QJsonObject root = doc.object();
+    if (!root.contains("shapes")) return false;
 
-    QJsonArray shapesArray = doc.array();
-    for(const QJsonValue& value : shapesArray){
-        QJsonObject shapeObject = value.toObject();
-        if(shapeObject.contains("type")){
-            QString type = shapeObject["type"].toString();
-            Shape* shape = createShape(type);
-            if(shape){
-                shape->fromJson(shapeObject);   
-                m_shapes.append(shape);
-            }
+    m_shapes.clear();
+    QJsonArray shapeArray = root["shapes"].toArray();
+    for (const QJsonValue &val : shapeArray) {
+        QJsonObject obj = val.toObject();
+        QString type = obj["type"].toString();
+        Shape* shape;
+
+        if (type == "Line") shape = new LineShape();
+        else if (type == "Ellipse") shape = new EllipseShape();
+        else if (type == "Rectangle") shape = new RectangleShape();
+        else if (type == "Freehand") shape = new FreehandShape();
+        else if (type == "Polygon") shape = new PolygonShape();
+        else if (type == "Regular polygon") shape = new RegularPolygonShape();
+
+        if (shape) {
+            shape->fromJson(obj);
+            m_shapes.append(shape);
         }
     }
 
-    m_isModified = false;
-    emit fileModified(false);
+    fileModified(false);
     update();
     return true;
 }
@@ -327,12 +406,12 @@ void CanvasWidget::clearCanvas(){
 }
 
 void CanvasWidget::deleteSelectedShape(){
-    if(!m_currentShape)
+    if(!m_selectedShape)
         return;
 
-    m_shapes.removeOne(m_currentShape);
-    delete m_currentShape;
-    m_currentShape = nullptr;
+    m_shapes.removeOne(m_selectedShape);
+    delete m_selectedShape;
+    m_selectedShape = nullptr;
     m_isModified = true;
     emit fileModified(true);
     update();
@@ -341,10 +420,10 @@ void CanvasWidget::deleteSelectedShape(){
 
 void CanvasWidget::bringToFront()
 {
-    if (!m_currentShape) return;
+    if (!m_selectedShape) return;
     
-    m_shapes.removeOne(m_currentShape);
-    m_shapes.append(m_currentShape);
+    m_shapes.removeOne(m_selectedShape);
+    m_shapes.append(m_selectedShape);
     m_isModified = true;
     emit fileModified(true);
     update();
@@ -352,22 +431,22 @@ void CanvasWidget::bringToFront()
 
 void CanvasWidget::sendToBack()
 {
-    if (!m_currentShape) return;
+    if (!m_selectedShape) return;
     
-    m_shapes.removeOne(m_currentShape);
-    m_shapes.prepend(m_currentShape);
+    m_shapes.removeOne(m_selectedShape);
+    m_shapes.prepend(m_selectedShape);
     m_isModified = true;
     emit fileModified(true);
     update();
 }
 
 void CanvasWidget::startAnimation(){
-    if(!m_currentShape)
+    if(!m_selectedShape)
         return;
     /*
         Animation
     */
-    QMessageBox::information(this, "Animation", "Animation for " + m_currentShape->name());
+    QMessageBox::information(this, "Animation", "Animation for " + m_selectedShape->name());
 }
 
 void CanvasWidget::stopAnimation(){

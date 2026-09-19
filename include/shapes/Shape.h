@@ -59,6 +59,7 @@ class Shape : public QObject
         Qt::PenStyle m_penStyle;
         bool m_selected;
         bool m_animating;
+        bool isFilled = true;
         double m_rotationAngle = 0.0;
 };
 

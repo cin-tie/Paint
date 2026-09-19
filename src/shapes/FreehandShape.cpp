@@ -129,7 +129,7 @@ QRect FreehandShape::boundingRect() const{
 QJsonObject FreehandShape::toJson() const{
     QJsonObject json = Shape::toJson();
     
-    json["type"] = "freehand";
+    json["type"] = "Freehand";
     QJsonArray pointsArray;
     for(const QPoint& p : m_points){
         QJsonObject pointObject;

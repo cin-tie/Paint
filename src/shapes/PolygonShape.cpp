@@ -101,7 +101,7 @@ QRect PolygonShape::boundingRect() const {
 
 QJsonObject PolygonShape::toJson() const {
     QJsonObject json = Shape::toJson();
-    json["type"] = "polygon";
+    json["type"] = "Polygon";
     json["closed"] = m_closed;
     
     QJsonArray pointsArray;

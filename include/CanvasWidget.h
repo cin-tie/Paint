@@ -58,6 +58,8 @@ class CanvasWidget : public QWidget{
         QPoint m_lastMousePos;
         bool m_dragging = false;
         bool m_resizing = false;
+        double m_scale = 1;
+        bool m_rotating = false;
 
         Shape* createShape(const QString& shapeType);
         void selectShape(const QPoint& point);

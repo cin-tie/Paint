@@ -100,7 +100,7 @@ bool EllipseShape::contains(const QPoint& point) const{
     }
 
     if (qFuzzyIsNull(m_rotationAngle)) {
-        return isPointOnEllipse(point);
+        return m_rect.contains(point);
     } else {
         return rotatedPolygon().containsPoint(point, Qt::OddEvenFill);
     }
@@ -144,23 +144,26 @@ QRect EllipseShape::axisAlignedBoundingRect() const{
 
 QJsonObject EllipseShape::toJson() const{
     QJsonObject json = Shape::toJson();
-    json["type"] = "ellipse";
+    json["type"] = "Ellipse";
     json["x"] = m_rect.x();
     json["y"] = m_rect.y();
     json["width"] = m_rect.width();
     json["height"] = m_rect.height();
+    return json;
 }
 
 void EllipseShape::fromJson(const QJsonObject& json){
     Shape::fromJson(json);
+    int x, y, w, h;
     if(json.contains("x"))
-        m_rect.setX(json["x"].toInt());
+        x = (json["x"].toInt());
     if(json.contains("y"))
-        m_rect.setY(json["y"].toInt());
+        y = (json["y"].toInt());
     if(json.contains("width"))
-        m_rect.setWidth(json["width"].toInt());
+        w = (json["width"].toInt());
     if(json.contains("height"))
-        m_rect.setWidth(json["height"].toInt());
+        h = (json["height"].toInt());
+    m_rect = QRect(x, y, w, h);
 }
 
 QString EllipseShape::name() const{ 

@@ -82,7 +82,7 @@ QRect RegularPolygonShape::boundingRect() const {
 
 QJsonObject RegularPolygonShape::toJson() const{
     QJsonObject json = Shape::toJson();
-    json["type"] = "regular_polygon";
+    json["type"] = "Regular polygon";
     json["centerX"] = m_center.x();
     json["centerY"] = m_center.y();
     json["radius"] = m_radius;

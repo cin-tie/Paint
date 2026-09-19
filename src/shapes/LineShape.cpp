@@ -86,7 +86,7 @@ QRect LineShape::boundingRect() const{
 
 QJsonObject LineShape::toJson() const{
     QJsonObject json = Shape::toJson();
-    json["type"] = "line";
+    json["type"] = "Line";
     json["startX"] = m_startPoint.x();
     json["startY"] = m_startPoint.y();
     json["endX"] = m_endPoint.x();

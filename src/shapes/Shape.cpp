@@ -42,6 +42,7 @@ void Shape::setPenWidth(int width){
 void Shape::setFillColor(const QColor& color){
     if(m_fillColor != color){
         m_fillColor = color;
+        isFilled = false;
         emit shapeChanged();
     }
 }
@@ -82,11 +83,12 @@ double Shape::rotationAngle() const{
 QJsonObject Shape::toJson() const
 {
     QJsonObject json;
-    json["penColor"] = m_penColor.name();
+    json["penColor"] = m_penColor.name();   
     json["penWidth"] = m_penWidth;
     json["fillColor"] = m_fillColor.name();
     json["penStyle"] = static_cast<int>(m_penStyle);
     json["rotationAngle"] = m_rotationAngle;
+    json["isFilled"] = isFilled;
     return json;
 }
 
@@ -105,6 +107,11 @@ void Shape::fromJson(const QJsonObject &json)
         m_penStyle = static_cast<Qt::PenStyle>(json["penStyle"].toInt());
     if(json.contains("rotationAngle"))
         m_rotationAngle = json["rotationAngle"].toDouble();
+    if(json.contains("isFilled")){
+        isFilled = json["isFilled"].toBool();
+        if(isFilled)
+            m_fillColor = Qt::transparent;
+    }
 }
 
 bool Shape::isSelected() const{
